@@ -65,12 +65,13 @@ loader.load("https://immersive-web.github.io/webxr-samples/media/gltf/reticle/re
   reticle = gltf.scene;
   reticle.visible = false;
   scene.add(reticle);
-})
+});
 
 let flower;
 loader.load("help.gltf", function(gltf) {
   flower = gltf.scene;
 });
+
 
 session.addEventListener("select", (event) => {
   if (flower) {
@@ -87,7 +88,7 @@ const onXRFrame = (time, frame) => {
   session.requestAnimationFrame(onXRFrame);
 
   // Bind the graphics framebuffer to the baseLayer's framebuffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
 
   // Retrieve the pose of the device.
   // XRFrame.getViewerPose can return null while the session attempts to establish tracking.
@@ -97,10 +98,10 @@ const onXRFrame = (time, frame) => {
     const view = pose.views[0];
 
     const viewport = session.renderState.baseLayer.getViewport(view);
-    renderer.setSize(viewport.width, viewport.height)
+    renderer.setSize(viewport.width, viewport.height);
 
     // Use the view's transform matrix and projection matrix to configure the THREE.camera.
-    camera.matrix.fromArray(view.transform.matrix)
+    camera.matrix.fromArray(view.transform.matrix);
     camera.projectionMatrix.fromArray(view.projectionMatrix);
     camera.updateMatrixWorld(true);
 
@@ -108,15 +109,15 @@ const onXRFrame = (time, frame) => {
 if (hitTestResults.length > 0 && reticle) {
   const hitPose = hitTestResults[0].getPose(referenceSpace);
   reticle.visible = true;
-  reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z)
+  reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z);
   reticle.updateMatrixWorld(true);
 }
 
 
     // Render the scene with THREE.WebGLRenderer.
-    renderer.render(scene, camera)
+    renderer.render(scene, camera);
   }
-}
+};
 session.requestAnimationFrame(onXRFrame);
 
 }
