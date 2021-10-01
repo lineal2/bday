@@ -8,7 +8,10 @@
 
   <!-- three.js -->
   <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
-  <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+  
+  <script src="fflate.min.js"></script>
+
+<script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
 </head>
 <body>
@@ -19,15 +22,64 @@
 <script>
 async function activateXR() {
   // Add a canvas element and initialize a WebGL context that is compatible with WebXR.
+
+
+
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
   const gl = canvas.getContext("webgl", {xrCompatible: true});
+
   const scene = new THREE.Scene();
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
-directionalLight.position.set(10, 15, 10);
-scene.add(directionalLight);
 
+
+  let ambientLight = new THREE.AmbientLight(new THREE.Color('hsl(0, 0%, 100%)'), 0.75);
+    scene.add(ambientLight);
+
+    let directionalLightBack = new THREE.DirectionalLight(new THREE.Color('hsl(0, 0%, 100%)'), 0.25);
+    directionalLightBack.position.set(30, 100, 100);
+    scene.add(directionalLightBack);
+
+    let directionalLightFront = new THREE.DirectionalLight(new THREE.Color('hsl(0, 0%, 100%)'), 0.25);
+    directionalLightFront.position.set(-30, 100, -100);
+    scene.add(directionalLightFront);
+
+
+
+    const clock = new THREE.Clock();
+
+  const loader = new THREE.GLTFLoader();
+
+
+loader.load("waa.gltf", function(gltf) {
+
+    //Playing Animation
+      mixer = new THREE.AnimationMixer( gltf.scene );
+    console.log( gltf.animations );
+    var action = mixer.clipAction(gltf.animations[0]).play();
+    var action2 = mixer.clipAction(gltf.animations[1]).play();
+    var action3 = mixer.clipAction(gltf.animations[2]).play();
+    var action4 = mixer.clipAction(gltf.animations[3]).play();
+    var action5 = mixer.clipAction(gltf.animations[4]).play();
+    var action6 = mixer.clipAction(gltf.animations[5]).play();
+    var action7 = mixer.clipAction(gltf.animations[6]).play();
+  //  var action8 = mixer.clipAction(gltf.animations[7]).play();
+
+
+
+
+
+
+
+
+  gltf.scene.position.set(0, 0, -10);
+
+  scene.add(gltf.scene);
+
+
+});
+
+//cube.position.set(1, 1, 1);
 
 // Set up the WebGLRenderer, which handles rendering to the session's base layer.
 const renderer = new THREE.WebGLRenderer({
@@ -44,8 +96,9 @@ renderer.autoClear = false;
 const camera = new THREE.PerspectiveCamera();
 camera.matrixAutoUpdate = false;
 
+
 // Initialize a WebXR session using "immersive-ar".
-const session = await navigator.xr.requestSession("immersive-ar", {requiredFeatures: ['hit-test']});
+const session = await navigator.xr.requestSession("immersive-ar");
 session.updateRenderState({
   baseLayer: new XRWebGLLayer(session, gl)
 });
@@ -53,33 +106,6 @@ session.updateRenderState({
 // A 'local' reference space has a native origin that is located
 // near the viewer's position at the time the session was created.
 const referenceSpace = await session.requestReferenceSpace('local');
-// Create another XRReferenceSpace that has the viewer as the origin.
-const viewerSpace = await session.requestReferenceSpace('viewer');
-// Perform hit testing using the viewer as origin.
-const hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-
-
-const loader = new THREE.GLTFLoader();
-let reticle;
-loader.load("https://immersive-web.github.io/webxr-samples/media/gltf/reticle/reticle.gltf", function(gltf) {
-  reticle = gltf.scene;
-  reticle.visible = false;
-  scene.add(reticle);
-});
-
-let flower;
-loader.load("help.gltf", function(gltf) {
-  flower = gltf.scene;
-});
-
-
-session.addEventListener("select", (event) => {
-  if (flower) {
-    const clone = flower.clone();
-    clone.position.copy(reticle.position);
-    scene.add(clone);
-  }
-});
 
 
 // Create a render loop that allows us to draw on the AR view.
@@ -88,7 +114,7 @@ const onXRFrame = (time, frame) => {
   session.requestAnimationFrame(onXRFrame);
 
   // Bind the graphics framebuffer to the baseLayer's framebuffer
-  gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer)
 
   // Retrieve the pose of the device.
   // XRFrame.getViewerPose can return null while the session attempts to establish tracking.
@@ -98,26 +124,21 @@ const onXRFrame = (time, frame) => {
     const view = pose.views[0];
 
     const viewport = session.renderState.baseLayer.getViewport(view);
-    renderer.setSize(viewport.width, viewport.height);
+    renderer.setSize(viewport.width, viewport.height)
 
     // Use the view's transform matrix and projection matrix to configure the THREE.camera.
-    camera.matrix.fromArray(view.transform.matrix);
+    camera.matrix.fromArray(view.transform.matrix)
     camera.projectionMatrix.fromArray(view.projectionMatrix);
     camera.updateMatrixWorld(true);
+ // Render the scene with THREE.WebGLRenderer.
 
-    const hitTestResults = frame.getHitTestResults(hitTestSource);
-if (hitTestResults.length > 0 && reticle) {
-  const hitPose = hitTestResults[0].getPose(referenceSpace);
-  reticle.visible = true;
-  reticle.position.set(hitPose.transform.position.x, hitPose.transform.position.y, hitPose.transform.position.z);
-  reticle.updateMatrixWorld(true);
-}
-
-
-    // Render the scene with THREE.WebGLRenderer.
-    renderer.render(scene, camera);
+ if (typeof mixer !== 'undefined') {
+    mixer.update(clock.getDelta());
+  } 
+ 
+    renderer.render(scene, camera)
   }
-};
+}
 session.requestAnimationFrame(onXRFrame);
 
 }
